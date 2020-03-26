@@ -7,7 +7,6 @@ export default function (min?: number, max?: number) {
   const _max = max || Infinity
 
   let buffer: Buffer
-  let ended: pull.EndOrError // from up-stream's callback
 
   function bite() {
     const offset = _min + Math.floor(Math.random() * Math.min(_max - _min, buffer.length))
@@ -25,17 +24,10 @@ export default function (min?: number, max?: number) {
       if (buffer?.length > 0) {
         return cb(null, bite())
       }
-      if (ended) {
-        return cb(ended)
-      }
 
       read(null, function (end, data) {
         if (end) {
-          ended = end
-          if (buffer?.length > 0) {
-            return cb(null, bite())
-          }
-          return cb(ended)
+          return cb(end)
         }
 
         const dataBuffer: Buffer = 'string' === typeof data ? Buffer.from(data) : data!
